@@ -39,16 +39,15 @@ to_date DATE NOT NULL,
 FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
 PRIMARY KEY (emp_no));
 
-SELECT * FROM departments;
-
-Drop table if exists titles;
-CREATE TABLE titles(
-emp_no INT NOT NULL,
-title VARCHAR NOT NULL,
-from_date DATE NOT NULL,
-to_date DATE NOT NULL,
-FOREIGN KEY (emp_no) REFERENCES employees (emp_no),
+create table dept_employees(
+emp_no int not null,
+dept_do int not null,
+from_date date not null,
+to_date date not null,
+FOREIGN key (emp_no) REFERENCES employees(emp_no),
 PRIMARY KEY (emp_no, from_date));
+
+SELECT * FROM departments;
 
 SELECT first_name, last_name
 FROM employees
@@ -118,7 +117,7 @@ select retirement_info.emp_no,
 	retirement_info.last_name,
 	dept_employees.to_date
 from retirement_info
-left join dept_employees
+left join dept_emp
 on retirement_info.emp_no = dept_employees.emp_no;
 
 -- joining retirement_info and dept_emp tables
@@ -205,3 +204,59 @@ WHERE (e.birth_date BETWEEN '1952-01-01' AND '1955-12-31')
 	 AND (de.to_date = '9999-01-01');
 	 
 select * from emp_info;
+
+-- List of managers per department
+SELECT  dm.dept_no,
+        d.dept_name,
+        dm.emp_no,
+        ce.last_name,
+        ce.first_name,
+        dm.from_date,
+        dm.to_date
+INTO manager_info
+FROM dept_manager AS dm
+    INNER JOIN departments AS d
+        ON (dm.dept_no = d.dept_no)
+    INNER JOIN current_emp AS ce
+        ON (dm.emp_no = ce.emp_no);
+		
+select * from manager_info;
+
+SELECT ce.emp_no,
+ce.first_name,
+ce.last_name,
+d.dept_name
+INTO dept_info
+FROM current_emp as ce
+INNER JOIN dept_employees AS de
+ON (ce.emp_no = de.emp_no)
+INNER JOIN departments AS d
+ON (de.dept_no = d.dept_no);
+
+select * from dept_info;
+
+-- list of retiring sales dept employees
+SELECT ce.emp_no,
+ce.first_name,
+ce.last_name,
+d.dept_name
+INTO retiring_sales
+FROM current_emp as ce
+INNER JOIN dept_employees AS de
+ON (ce.emp_no = de.emp_no)
+INNER JOIN departments AS d
+ON (de.dept_no = d.dept_no)
+where dept_name = 'Sales';
+
+-- list of retiring sales and development employees
+SELECT ce.emp_no,
+ce.first_name,
+ce.last_name,
+d.dept_name
+INTO mentoring_emp
+FROM current_emp as ce
+INNER JOIN dept_employees AS de
+ON (ce.emp_no = de.emp_no)
+INNER JOIN departments AS d
+ON (de.dept_no = d.dept_no)
+where dept_name in ('Sales', 'Development');
